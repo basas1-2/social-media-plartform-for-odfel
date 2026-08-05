@@ -1,0 +1,19 @@
+# Normalize line endings for text files to LF
+* text=auto
+
+# node_modules and build artifacts should not trigger line-ending normalization
+client/node_modules/** -text
+server/node_modules/** -text
+client/build/** -text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.mp4 binary
+*.mov binary
+*.pdf binary
+
+# Lock files
+*.lock -text
