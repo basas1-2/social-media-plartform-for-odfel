@@ -1,0 +1,31 @@
+# Render Blueprint - Single Web Service deployment
+# This deploys the entire app (frontend + backend + Socket.IO) on ONE service.
+#
+# How it works:
+#   - Render runs `npm install` at the root, which triggers the `postinstall`
+#     script that builds the React frontend into client/build.
+#   - Render then runs `npm start` which boots server/server.js.
+#   - The Express server serves BOTH the built frontend (client/build) and the
+#     API (/api/*) plus Socket.IO — all on one URL.
+
+services:
+  - type: web
+    name: codfel-social-media
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # IMPORTANT: Set these in the Render dashboard too (or use one of these):
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false

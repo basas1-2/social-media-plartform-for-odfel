@@ -12,7 +12,9 @@ export const SocketProvider = ({ children }) => {
   const [newMessage, setNewMessage] = useState(null);
   const socketRef = useRef(null);
 
-  const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+// In single-host mode Socket.IO runs on the same server that serves the
+  // frontend, so we connect to the current host (no hardcoded port).
+  const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || window.location.origin;
 
   useEffect(() => {
     const token = localStorage.getItem('token');

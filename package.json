@@ -1,0 +1,26 @@
+{
+  "name": "codfel-social-media",
+  "version": "1.0.0",
+  "description": "Codfel Social Media Platform - single host deployment (React + Express + Socket.IO)",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "install-all": "npm install --prefix server && npm install --prefix client && npm run build-client",
+    "build-client": "npm run build --prefix client",
+    "postinstall": "npm run build-client"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "social-media",
+    "react",
+    "express",
+    "socket.io",
+    "mongodb",
+    "render"
+  ],
+  "author": "Codfel",
+  "license": "MIT"
+}

@@ -56,6 +56,16 @@ app.use(morgan('dev'));
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve built React frontend (same-origin single hosting)
+// The client build output lives in ../client/build
+const clientBuild = path.join(__dirname, '..', 'client', 'build');
+if (require('fs').existsSync(clientBuild)) {
+  app.use(express.static(clientBuild));
+  console.log('📦 Serving React frontend from client/build (single-host mode)');
+} else {
+  console.log('⚠️  client/build not found. Run: cd client && npm run build');
+}
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -77,6 +87,18 @@ app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+
+// SPA fallback: serve index.html for any non-API route so React Router
+// handles client-side navigation (e.g. /login, /messages, /profile/username).
+if (require('fs').existsSync(clientBuild)) {
+  app.get('*', (req, res, next) => {
+    // Skip /uploads and /api
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    res.sendFile(path.join(clientBuild, 'index.html'));
+  });
+}
 
 // Error handling
 app.use(notFound);

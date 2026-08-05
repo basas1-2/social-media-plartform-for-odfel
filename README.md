@@ -104,12 +104,12 @@ codfel-social-media/
 PORT=5000
 MONGO_URI=mongodb+srv://<username>:<password>@<cluster-url>.mongodb.net/codfel-social-media?retryWrites=true&w=majority
 JWT_SECRET=your_secret_key
-CLIENT_URL=http://localhost:3000
+CLIENT_URL=http://localhost:5000
 ```
 
 **Client** (`client/.env`):
 ```
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=/api
 REACT_APP_SOCKET_URL=http://localhost:5000
 ```
 
@@ -138,21 +138,60 @@ Default admin credentials:
 - Username: `admin`
 - Password: `admin123`
 
-### 4. Run the Application
+### 4. Run the Application (Single Host)
 
-**Server:**
+The project is configured to run on **one URL**. The Express server serves both the API (under `/api`) and the built React frontend. No separate hosting is needed.
+
+**Step 1 — Build the frontend:**
+```bash
+cd client
+npm run build
+```
+This creates `client/build/` which the server serves automatically.
+
+**Step 2 — Start the server:**
 ```bash
 cd server
 npm run dev
 ```
-Server runs on `http://localhost:5000`
 
-**Client:**
-```bash
-cd client
-npm start
-```
-Client runs on `http://localhost:3000`
+**That's it.** Open `http://localhost:5000` — you'll see the full app (login, feed, messages, etc.) all on this single URL. The API is served at `http://localhost:5000/api` and Socket.IO runs on the same server.
+
+> **For development only (optional):** Run `cd client && npm start` separately to use the hot-reloading dev server on port 3000. But for a single hosted URL, use `npm run build` + the server.
+
+---
+
+## Deploying on Render (Single Web Service)
+
+The whole app (React frontend + Express API + Socket.IO) runs on **one Render web service**. The client is built automatically during install and served by the same Express server.
+
+### Method 1 — Blueprint (recommended, uses `render.yaml`)
+1. Push this repository to GitHub.
+2. In Render Dashboard → **New** → **Blueprint**.
+3. Connect your GitHub repo.
+4. Render reads `render.yaml` and creates the service automatically.
+5. **Set the environment variables** in the Render dashboard (Red dash = required):
+   - `MONGO_URI` — your MongoDB Atlas connection string
+   - `JWT_SECRET` — a long random secret
+   - `CLIENT_URL` — your Render URL, e.g. `https://codfel-social-media.onrender.com`
+6. Deploy. Render runs `npm install` (which builds the client via `postinstall`) then `npm start`.
+
+### Method 2 — Manual (Web Service)
+1. Push repo to GitHub.
+2. Render Dashboard → **New** → **Web Service**.
+3. Connect repo, choose the root directory.
+4. Settings:
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Root Directory:** `.`
+   - **Health Check Path:** `/api/health`
+5. Add the same env vars (`MONGO_URI`, `JWT_SECRET`, `CLIENT_URL`).
+6. Deploy.
+
+### ⚠️ Important notes for Render
+- **Uploads are ephemeral** on Render's free tier — files saved to `server/uploads/` are lost whenever the service restarts. For persistent media hosting, connect a storage service (e.g., Cloudinary, AWS S3, or Render Disks). This does not affect text posts, likes, comments, messages, or users (those live in MongoDB Atlas).
+- **Socket.IO** works on the same URL — the client connects to `window.location.origin` automatically, so no extra config needed.
+- Set `CLIENT_URL` to your actual Render URL for correct CORS.
 
 ## API Endpoints
 
