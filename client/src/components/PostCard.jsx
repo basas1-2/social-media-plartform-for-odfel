@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaHeart, FaComment, FaShare, FaBookmark, FaTrash, FaEdit, FaFlag } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
@@ -196,9 +196,9 @@ const PostCard = ({ post, onDelete, onUpdate }) => {
         )}
       </div>
 
-      {/* Images */}
+{/* Images */}
       {post?.images && post.images.length > 0 && (
-        <div className={`grid ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-1 px-4`}>
+        <div className={`post-images-grid grid ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-1 px-4`}>
           {post.images.map((img, i) => (
             <img
               key={i}

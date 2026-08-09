@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import PostCreator from '../components/PostCreator';
 import PostCard from '../components/PostCard';
-import UserCard from '../components/UserCard';
-import { getFeed } from '../services/postService';
+import { getAllPosts } from '../services/postService';
 import { getSuggestions } from '../services/userService';
 
 const Home = () => {
@@ -26,7 +24,7 @@ const Home = () => {
 
   const loadFeed = useCallback(async (pageNum) => {
     try {
-      const { data } = await getFeed(pageNum);
+      const { data } = await getAllPosts(pageNum);
       if (pageNum === 1) {
         setPosts(data.posts);
       } else {
@@ -46,10 +44,6 @@ const Home = () => {
     loadSuggestions();
   }, [loadFeed, loadSuggestions]);
 
-  const handlePostCreated = (newPost) => {
-    setPosts((prev) => [newPost, ...prev]);
-  };
-
   const handleDelete = (postId) => {
     setPosts((prev) => prev.filter((p) => p._id !== postId));
   };
@@ -57,10 +51,37 @@ const Home = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex gap-6">
-        {/* Left sidebar - Suggestions */}
+        {/* Main feed - all posts */}
+        <div className="flex-1 max-w-2xl mx-auto lg:mx-0">
+          {loading ? (
+            <div className="text-center py-10 text-gray-500">Loading...</div>
+          ) : (
+            <>
+              {posts.map((post) => (
+                <PostCard key={post._id} post={post} onDelete={handleDelete} />
+              ))}
+              {hasMore && (
+                <button
+                  onClick={() => loadFeed(page + 1)}
+                  className="w-full bg-white py-3 rounded-lg shadow-md text-primary font-semibold hover:bg-gray-50"
+                >
+                  Load More
+                </button>
+              )}
+              {posts.length === 0 && (
+                <div className="text-center py-10 text-gray-500">
+                  <p className="text-lg font-semibold">No posts yet</p>
+                  <p>Be the first to create a post</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Right sidebar - Suggestions (desktop only) */}
         <div className="hidden lg:block w-64 flex-shrink-0">
-          <div className="sticky top-20">
-            <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+          <div className="sticky top-20 space-y-4">
+            <div className="bg-white rounded-lg shadow-md p-4">
               <div className="flex items-center justify-between mb-3">
                 <Link to={`/profile/${user?.username}`} className="flex items-center space-x-2">
                   <img
@@ -97,46 +118,6 @@ const Home = () => {
                   </Link>
                 ))}
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main feed */}
-        <div className="flex-1 max-w-2xl">
-          <PostCreator onPostCreated={handlePostCreated} />
-          {loading ? (
-            <div className="text-center py-10 text-gray-500">Loading...</div>
-          ) : (
-            <>
-              {posts.map((post) => (
-                <PostCard key={post._id} post={post} onDelete={handleDelete} />
-              ))}
-              {hasMore && (
-                <button
-                  onClick={() => loadFeed(page + 1)}
-                  className="w-full bg-white py-3 rounded-lg shadow-md text-primary font-semibold hover:bg-gray-50"
-                >
-                  Load More
-                </button>
-              )}
-              {posts.length === 0 && (
-                <div className="text-center py-10 text-gray-500">
-                  <p className="text-lg font-semibold">No posts yet</p>
-                  <p>Follow people to see their posts here</p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Right sidebar - Friends */}
-        <div className="hidden xl:block w-56 flex-shrink-0">
-          <div className="sticky top-20 bg-white rounded-lg shadow-md p-4">
-            <h3 className="font-semibold text-gray-700 mb-3">Suggestions</h3>
-            <div className="space-y-3">
-              {suggestions.slice(0, 5).map((s) => (
-                <UserCard key={s._id} user={s} />
-              ))}
             </div>
           </div>
         </div>

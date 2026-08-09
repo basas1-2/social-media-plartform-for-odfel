@@ -6,6 +6,7 @@ import { getProfile, toggleFollow } from '../services/userService';
 import { getUserPosts } from '../services/postService';
 import { createConversation } from '../services/messageService';
 import PostCard from '../components/PostCard';
+import PostCreator from '../components/PostCreator';
 
 const Profile = () => {
   const { username } = useParams();
@@ -59,6 +60,10 @@ const Profile = () => {
     }
   };
 
+  const handlePostCreated = (newPost) => {
+    setPosts((prev) => [newPost, ...prev]);
+  };
+
   if (loading) {
     return <div className="text-center py-20 text-gray-500">Loading...</div>;
   }
@@ -71,7 +76,7 @@ const Profile = () => {
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Cover */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="relative h-48 bg-gradient-to-r from-primary to-secondary">
+        <div className="relative profile-cover bg-gradient-to-r from-primary to-secondary">
           {profile.coverPhoto && (
             <img src={profile.coverPhoto} alt="cover" className="w-full h-full object-cover" />
           )}
@@ -143,6 +148,14 @@ const Profile = () => {
       {/* Posts */}
       <div className="mt-6">
         <h2 className="text-xl font-semibold mb-4">Posts</h2>
+
+        {/* Post creator - only on own profile */}
+        {isOwnProfile && (
+          <div className="mb-4">
+            <PostCreator onPostCreated={handlePostCreated} />
+          </div>
+        )}
+
         {posts.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
             <p className="text-lg font-semibold">No posts yet</p>

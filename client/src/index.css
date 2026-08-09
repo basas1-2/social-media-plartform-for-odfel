@@ -31,3 +31,67 @@ code {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* ===== Mobile-first responsive utilities ===== */
+
+/* Prevent horizontal overflow on small screens */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Responsive container that keeps comfortable padding on mobile */
+.page-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Single-column post images on very small screens */
+@media (max-width: 480px) {
+  .post-images-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Reduce profile cover height on mobile */
+@media (max-width: 640px) {
+  .profile-cover {
+    height: 9rem; /* 144px on mobile */
+  }
+}
+
+@media (min-width: 641px) {
+  .profile-cover {
+    height: 13rem; /* 208px on larger screens */
+  }
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+  .nav-icon {
+    min-width: 40px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
