@@ -17,6 +17,9 @@ const Conversation = require('./Conversation');
 const Message = require('./Message');
 const Notification = require('./Notification');
 const Report = require('./Report');
+const Group = require('./Group');
+const Resource = require('./Resource');
+const Schedule = require('./Schedule');
 
 module.exports = {
   User,
@@ -26,4 +29,7 @@ module.exports = {
   Message,
   Notification,
   Report,
+  Group,
+  Resource,
+  Schedule,
 };

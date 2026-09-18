@@ -62,6 +62,41 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    role: {
+      type: String,
+      enum: ['student', 'lecturer', 'tutor', 'researcher', 'admin'],
+      default: 'student',
+    },
+    institution: {
+      type: String,
+      default: 'ODFEL Open University',
+      trim: true,
+    },
+    faculty: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    department: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    courseOfStudy: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    academicLevel: {
+      type: String,
+      default: '100 Level',
+      trim: true,
+    },
+    matricNumber: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     isSuspended: {
       type: Boolean,
       default: false,

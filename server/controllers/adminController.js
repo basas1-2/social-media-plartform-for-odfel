@@ -5,40 +5,61 @@ const Report = require('../models/Report');
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 
+const Group = require('../models/Group');
+const Resource = require('../models/Resource');
+
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
 // @access  Admin
 const getStats = async (req, res, next) => {
   try {
-    const [totalUsers, totalPosts, totalComments, totalReports, totalMessages, totalConversations] =
-      await Promise.all([
-        User.countDocuments(),
-        Post.countDocuments({ isDeleted: false }),
-        Comment.countDocuments(),
-        Report.countDocuments({ status: 'pending' }),
-        Message.countDocuments(),
-        Conversation.countDocuments(),
-      ]);
-
-    // Recent users
-    const recentUsers = await User.find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .select('fullname username profilePicture createdAt isAdmin isSuspended');
-
-    // Recent posts
-    const recentPosts = await Post.find({ isDeleted: false })
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .populate('userId', 'fullname username profilePicture');
-
-    res.json({
+    const [
       totalUsers,
+      totalStudents,
+      totalLecturers,
       totalPosts,
       totalComments,
       totalReports,
       totalMessages,
       totalConversations,
+      totalGroups,
+      totalResources,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: 'student' }),
+      User.countDocuments({ role: { $in: ['lecturer', 'tutor'] } }),
+      Post.countDocuments({ isDeleted: false }),
+      Comment.countDocuments(),
+      Report.countDocuments({ status: 'pending' }),
+      Message.countDocuments(),
+      Conversation.countDocuments(),
+      Group.countDocuments({ isDeleted: false }),
+      Resource.countDocuments({ isDeleted: false }),
+    ]);
+
+    // Recent users
+    const recentUsers = await User.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('fullname username profilePicture role createdAt isAdmin isSuspended');
+
+    // Recent posts
+    const recentPosts = await Post.find({ isDeleted: false })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('userId', 'fullname username profilePicture role');
+
+    res.json({
+      totalUsers,
+      totalStudents,
+      totalLecturers,
+      totalPosts,
+      totalComments,
+      totalReports,
+      totalMessages,
+      totalConversations,
+      totalGroups,
+      totalResources,
       recentUsers,
       recentPosts,
     });

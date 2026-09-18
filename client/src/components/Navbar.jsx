@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaHome, FaUserFriends, FaBell, FaCommentDots, FaBookmark, FaCog, FaSignOutAlt, FaShieldAlt } from 'react-icons/fa';
+import {
+  FaHome,
+  FaUserFriends,
+  FaBell,
+  FaCommentDots,
+  FaBookmark,
+  FaCog,
+  FaSignOutAlt,
+  FaShieldAlt,
+  FaUsers,
+  FaBook,
+  FaCalendarAlt,
+  FaSearch,
+} from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { getNotifications } from '../services/notificationService';
+import AcademicBadge from './AcademicBadge';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   useEffect(() => {
     fetchNotifications();
@@ -30,87 +45,135 @@ const Navbar = () => {
     navigate('/login');
   };
 
-const navItem = 'nav-icon flex items-center px-2 md:px-3 py-2 rounded-lg hover:bg-white/20 transition cursor-pointer';
+  const navItem = 'nav-icon flex items-center justify-center px-2 sm:px-2.5 md:px-3 py-2 rounded-lg hover:bg-white/20 transition cursor-pointer text-xs sm:text-sm font-medium flex-shrink-0';
 
   return (
-    <nav className="bg-primary text-white shadow-md sticky top-0 z-50 relative">
-      <div className="max-w-6xl mx-auto px-4 py-2">
-        {/* Top row: logo + icons */}
+    <nav className="bg-primary text-white shadow-lg fixed top-0 left-0 right-0 z-50">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5">
+        {/* Main Row */}
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl md:text-2xl font-bold flex items-center">
-            <span className="bg-white text-primary px-2 py-1 rounded-lg mr-2">C</span>
-            Codfel
+          {/* Logo */}
+          <Link to="/" className="text-lg sm:text-xl md:text-2xl font-black flex items-center tracking-wide flex-shrink-0 mr-2">
+            <span className="bg-white text-primary px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg mr-1.5 font-black shadow-sm text-sm sm:text-base">C</span>
+            <span>CODFEL <span className="text-[10px] sm:text-xs text-blue-200 font-normal hidden xs:inline">Network</span></span>
           </Link>
 
-          {/* Nav icons */}
-          <div className="flex items-center space-x-1 md:space-x-2">
-            <Link to="/" className={navItem} title="Home">
-              <FaHome size={20} />
+          {/* Search bar on Laptop/Desktop */}
+          <div className="hidden md:flex flex-1 max-w-sm mx-4 relative">
+            <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/70 text-xs" />
+            <input
+              type="text"
+              placeholder="Search courses, study notes, or peers..."
+              className="w-full bg-white/20 text-white placeholder-white/70 rounded-full pl-9 pr-4 py-1.5 text-xs outline-none focus:bg-white/30 transition border border-white/10"
+              onFocus={() => navigate('/search')}
+            />
+          </div>
+
+          {/* Navigation Links & User Menu */}
+          <div className="flex items-center space-x-0.5 sm:space-x-1.5 md:space-x-2 overflow-x-auto no-scrollbar">
+            {/* Mobile search toggle icon */}
+            <button
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              className="md:hidden p-2 rounded-lg hover:bg-white/20 transition text-white"
+              title="Search"
+            >
+              <FaSearch size={16} />
+            </button>
+
+            <Link to="/" className={navItem} title="Feed">
+              <FaHome size={18} className="md:mr-1" />
+              <span className="hidden lg:inline">Feed</span>
             </Link>
-            <Link to="/saved" className={navItem} title="Saved">
-              <FaBookmark size={20} />
+
+            <Link to="/groups" className={navItem} title="Study Groups">
+              <FaUsers size={18} className="md:mr-1" />
+              <span className="hidden lg:inline">Study Groups</span>
             </Link>
+
+            <Link to="/resources" className={navItem} title="Resource Library">
+              <FaBook size={17} className="md:mr-1" />
+              <span className="hidden lg:inline">Library</span>
+            </Link>
+
+            <Link to="/schedule" className={navItem} title="Schedule">
+              <FaCalendarAlt size={17} className="md:mr-1" />
+              <span className="hidden lg:inline">Schedule</span>
+            </Link>
+
             <Link to="/messages" className={navItem} title="Messages">
-              <FaCommentDots size={20} />
+              <FaCommentDots size={18} />
             </Link>
+
             <Link to="/notifications" className={`${navItem} relative`} title="Notifications">
-              <FaBell size={20} />
+              <FaBell size={18} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shadow-sm">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </Link>
+
+            {/* STRICT ADMIN CHECK: Only rendered if user.isAdmin is true */}
             {user?.isAdmin && (
-              <Link to="/admin" className={navItem} title="Admin">
-                <FaShieldAlt size={20} />
+              <Link to="/admin" className={`${navItem} bg-red-600/80 hover:bg-red-600 font-bold`} title="Admin Dashboard">
+                <FaShieldAlt size={18} className="md:mr-1 text-yellow-300" />
+                <span className="hidden lg:inline">Admin</span>
               </Link>
             )}
 
-            {/* Profile dropdown */}
-            <div className="relative">
+            {/* User Profile Menu Dropdown */}
+            <div className="relative ml-1 flex-shrink-0">
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center px-2 py-1 rounded-lg hover:bg-white/20 transition"
+                className="flex items-center p-1 rounded-lg hover:bg-white/20 transition focus:outline-none"
               >
                 <img
                   src={user?.profilePicture || 'https://via.placeholder.com/40'}
                   alt="profile"
-                  className="w-8 h-8 rounded-full object-cover border-2 border-white"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-white shadow-xs"
                 />
               </button>
+
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-white text-gray-800 rounded-lg shadow-lg py-2 z-50">
-                  <div className="px-4 py-2 border-b">
-                    <p className="font-semibold">{user?.fullname}</p>
-                    <p className="text-sm text-gray-500">@{user?.username}</p>
+                <div className="absolute right-0 mt-2 w-64 bg-white text-gray-800 rounded-2xl shadow-2xl py-2 z-50 border border-gray-100 animate-fadeIn">
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold text-gray-900 text-sm truncate">{user?.fullname}</p>
+                      <AcademicBadge role={user?.role} showText={true} />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">@{user?.username}</p>
+                    {user?.courseOfStudy && (
+                      <p className="text-xs font-medium text-primary mt-1 truncate">
+                        📚 {user?.courseOfStudy}
+                      </p>
+                    )}
                   </div>
                   <Link
                     to={`/profile/${user?.username}`}
-                    className="block px-4 py-2 hover:bg-gray-100"
+                    className="block px-4 py-2 hover:bg-gray-50 text-xs font-semibold flex items-center text-gray-700"
                     onClick={() => setShowDropdown(false)}
                   >
-                    <FaUserFriends className="inline mr-2" /> My Profile
+                    <FaUserFriends className="mr-3 text-gray-400" /> My Academic Profile
+                  </Link>
+                  <Link
+                    to="/saved"
+                    className="block px-4 py-2 hover:bg-gray-50 text-xs font-semibold flex items-center text-gray-700"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    <FaBookmark className="mr-3 text-gray-400" /> Saved Notes & Posts
                   </Link>
                   <Link
                     to="/edit-profile"
-                    className="block px-4 py-2 hover:bg-gray-100"
+                    className="block px-4 py-2 hover:bg-gray-50 text-xs font-semibold flex items-center text-gray-700"
                     onClick={() => setShowDropdown(false)}
                   >
-                    <FaCog className="inline mr-2" /> Edit Profile
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setShowDropdown(false)}
-                  >
-                    <FaCog className="inline mr-2" /> Settings
+                    <FaCog className="mr-3 text-gray-400" /> Edit Profile
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+                    className="w-full text-left px-4 py-2 hover:bg-red-50 text-xs flex items-center text-red-600 font-bold border-t border-gray-100"
                   >
-                    <FaSignOutAlt className="inline mr-2" /> Logout
+                    <FaSignOutAlt className="mr-3" /> Logout
                   </button>
                 </div>
               )}
@@ -118,15 +181,20 @@ const navItem = 'nav-icon flex items-center px-2 md:px-3 py-2 rounded-lg hover:b
           </div>
         </div>
 
-        {/* Search - full width on mobile, centered on desktop */}
-        <div className="mt-2 md:mt-0 md:flex md:justify-center md:absolute md:left-1/2 md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-md">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full bg-white/20 text-white placeholder-white/70 rounded-full px-3 py-1.5 md:px-4 md:py-2 text-sm outline-none focus:bg-white/30"
-            onFocus={() => navigate('/search')}
-          />
-        </div>
+        {/* Mobile Search Row - visible when toggled on phone screens */}
+        {showMobileSearch && (
+          <div className="mt-2 pt-2 border-t border-white/20 md:hidden">
+            <input
+              type="text"
+              placeholder="Search courses, notes, peers..."
+              className="w-full bg-white/20 text-white placeholder-white/70 rounded-full px-4 py-1.5 text-xs outline-none focus:bg-white/30"
+              onFocus={() => {
+                setShowMobileSearch(false);
+                navigate('/search');
+              }}
+            />
+          </div>
+        )}
       </div>
     </nav>
   );

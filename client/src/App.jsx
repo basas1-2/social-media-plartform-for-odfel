@@ -16,9 +16,14 @@ import Friends from './pages/Friends';
 import SavedPosts from './pages/SavedPosts';
 import AdminDashboard from './pages/AdminDashboard';
 import Settings from './pages/Settings';
+import StudyGroups from './pages/StudyGroups';
+import GroupDetail from './pages/GroupDetail';
+import ResourceHub from './pages/ResourceHub';
+import AcademicSchedule from './pages/AcademicSchedule';
 
 // Components
 import Navbar from './components/Navbar';
+import PaymentLock from './components/PaymentLock';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -36,18 +41,55 @@ const AdminRoute = ({ children }) => {
 const AppContent = () => {
   const { user } = useAuth();
 
+  if (user) {
+    return <PaymentLock />;
+  }
+
   return (
     <BrowserRouter>
       <SocketProvider>
         {user && <Navbar />}
-        <Routes>
-          <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+        <div className={user ? "pt-14 sm:pt-16 md:pt-20 min-h-screen bg-gray-100" : "min-h-screen bg-gray-100"}>
+          <Routes>
+            <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
           <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
           <Route
             path="/"
             element={
               <ProtectedRoute>
                 <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups"
+            element={
+              <ProtectedRoute>
+                <StudyGroups />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:id"
+            element={
+              <ProtectedRoute>
+                <GroupDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resources"
+            element={
+              <ProtectedRoute>
+                <ResourceHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/schedule"
+            element={
+              <ProtectedRoute>
+                <AcademicSchedule />
               </ProtectedRoute>
             }
           />
@@ -125,6 +167,7 @@ const AppContent = () => {
           />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </div>
       </SocketProvider>
     </BrowserRouter>
   );

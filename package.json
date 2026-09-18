@@ -22,5 +22,10 @@
     "render"
   ],
   "author": "Codfel",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "docx": "^9.7.1",
+    "puppeteer": "^25.10.0",
+    "pureimage": "^0.4.20"
+  }
 }

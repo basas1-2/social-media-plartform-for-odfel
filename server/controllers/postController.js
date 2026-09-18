@@ -9,10 +9,11 @@ const mongoose = require('mongoose');
 // @access  Private
 const createPost = async (req, res, next) => {
   try {
-    const { text, tags } = req.body;
+    const { text, tags, postType, courseCode, subject } = req.body;
 
     let images = [];
     let video = '';
+    let documents = [];
 
     if (req.files) {
       if (req.files.images) {
@@ -23,23 +24,35 @@ const createPost = async (req, res, next) => {
       if (req.files.video) {
         video = fileUrl(req, req.files.video[0].path.replace(/\\/g, '/'));
       }
+      if (req.files.documents) {
+        documents = req.files.documents.map((f) => ({
+          originalName: f.originalname,
+          filePath: fileUrl(req, f.path.replace(/\\/g, '/')),
+          fileSize: f.size || 0,
+          fileType: f.mimetype || 'document',
+        }));
+      }
     }
 
-    if (!text && images.length === 0 && !video) {
-      return res.status(400).json({ message: 'Post must have text or media' });
+    if (!text && images.length === 0 && !video && documents.length === 0) {
+      return res.status(400).json({ message: 'Post must have text, media, or educational document' });
     }
 
     const post = await Post.create({
       userId: req.user._id,
       text,
+      postType: postType || 'general',
+      courseCode: courseCode ? courseCode.toUpperCase().trim() : '',
+      subject: subject || '',
       images,
       video,
+      documents,
       tags: tags ? JSON.parse(tags) : [],
     });
 
     // Create mention notifications
     if (tags && tags.length) {
-      const mentionedUsers = JSON.parse(tags);
+      const mentionedUsers = typeof tags === 'string' ? JSON.parse(tags) : tags;
       for (const uid of mentionedUsers) {
         if (uid !== req.user._id.toString()) {
           await Notification.create({
@@ -53,7 +66,7 @@ const createPost = async (req, res, next) => {
       }
     }
 
-    const populated = await Post.findById(post._id).populate('userId', 'fullname username profilePicture');
+    const populated = await Post.findById(post._id).populate('userId', 'fullname username profilePicture role');
 
     res.status(201).json(populated);
   } catch (error) {
@@ -69,24 +82,31 @@ const getFeed = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const { postType, courseCode } = req.query;
 
     const me = await require('../models/User').findById(req.user._id).select('following');
     const following = me.following;
     following.push(req.user._id);
 
-    const posts = await Post.find({
+    const query = {
       userId: { $in: following },
       isDeleted: false,
-    })
+    };
+
+    if (postType && postType !== 'all') {
+      query.postType = postType;
+    }
+    if (courseCode) {
+      query.courseCode = new RegExp(courseCode.trim(), 'i');
+    }
+
+    const posts = await Post.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('userId', 'fullname username profilePicture');
+      .populate('userId', 'fullname username profilePicture role institution department courseOfStudy');
 
-    const total = await Post.countDocuments({
-      userId: { $in: following },
-      isDeleted: false,
-    });
+    const total = await Post.countDocuments(query);
 
     res.json({ posts, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
@@ -94,7 +114,7 @@ const getFeed = async (req, res, next) => {
   }
 };
 
-// @desc    Get all posts (for admin or home explore)
+// @desc    Get all posts (for explore / Q&A search)
 // @route   GET /api/posts/all
 // @access  Private
 const getAllPosts = async (req, res, next) => {
@@ -102,14 +122,27 @@ const getAllPosts = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const { postType, courseCode, search } = req.query;
 
-    const posts = await Post.find({ isDeleted: false })
+    const query = { isDeleted: false };
+    if (postType && postType !== 'all') {
+      query.postType = postType;
+    }
+    if (courseCode) {
+      query.courseCode = new RegExp(courseCode.trim(), 'i');
+    }
+    if (search) {
+      const sRegex = new RegExp(search.trim(), 'i');
+      query.$or = [{ text: sRegex }, { courseCode: sRegex }, { subject: sRegex }];
+    }
+
+    const posts = await Post.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('userId', 'fullname username profilePicture');
+      .populate('userId', 'fullname username profilePicture role institution department courseOfStudy');
 
-    const total = await Post.countDocuments({ isDeleted: false });
+    const total = await Post.countDocuments(query);
     res.json({ posts, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     next(error);
@@ -376,10 +409,80 @@ const addComment = async (req, res, next) => {
 const getComments = async (req, res, next) => {
   try {
     const comments = await Comment.find({ postId: req.params.id })
-      .sort({ createdAt: -1 })
-      .populate('userId', 'fullname username profilePicture');
+      .sort({ isBestAnswer: -1, createdAt: -1 })
+      .populate('userId', 'fullname username profilePicture role institution department');
 
     res.json(comments);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Mark comment as best answer / verified solution
+// @route   PUT /api/posts/:id/comments/:commentId/best-answer
+// @access  Private (Post owner, Lecturer, or Admin)
+const markBestAnswer = async (req, res, next) => {
+  try {
+    const { id, commentId } = req.params;
+    const post = await Post.findById(id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const isPostOwner = post.userId.toString() === req.user._id.toString();
+    const isEducator = ['lecturer', 'tutor', 'admin'].includes(req.user.role);
+
+    if (!isPostOwner && !isEducator) {
+      return res.status(403).json({ message: 'Only the question poster or a lecturer/tutor can mark the best answer' });
+    }
+
+    // Reset previous best answer if any
+    await Comment.updateMany({ postId: id }, { isBestAnswer: false });
+
+    const targetComment = await Comment.findById(commentId);
+    if (!targetComment) return res.status(404).json({ message: 'Comment not found' });
+
+    targetComment.isBestAnswer = true;
+    await targetComment.save();
+
+    post.isSolved = true;
+    post.solvedCommentId = commentId;
+    await post.save();
+
+    if (targetComment.userId.toString() !== req.user._id.toString()) {
+      await Notification.create({
+        receiverId: targetComment.userId,
+        senderId: req.user._id,
+        type: 'comment',
+        postId: id,
+        commentId,
+        text: `Your answer was marked as the Best Answer / Verified Solution!`,
+      });
+    }
+
+    res.json({ message: 'Marked as best answer successfully', commentId });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Upvote comment / answer
+// @route   PUT /api/posts/comments/:commentId/upvote
+// @access  Private
+const toggleCommentUpvote = async (req, res, next) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    const hasUpvoted = comment.upvotes.includes(req.user._id);
+
+    if (hasUpvoted) {
+      comment.upvotes = comment.upvotes.filter((uid) => uid.toString() !== req.user._id.toString());
+      await comment.save();
+      res.json({ upvoted: false, count: comment.upvotes.length });
+    } else {
+      comment.upvotes.push(req.user._id);
+      await comment.save();
+      res.json({ upvoted: true, count: comment.upvotes.length });
+    }
   } catch (error) {
     next(error);
   }
@@ -399,4 +502,6 @@ module.exports = {
   getSavedPosts,
   addComment,
   getComments,
+  markBestAnswer,
+  toggleCommentUpvote,
 };

@@ -10,8 +10,8 @@ const getUserProfile = async (req, res, next) => {
   try {
     const user = await User.findOne({ username: req.params.username })
       .select('-email')
-      .populate('followers', 'fullname username profilePicture')
-      .populate('following', 'fullname username profilePicture');
+      .populate('followers', 'fullname username profilePicture role')
+      .populate('following', 'fullname username profilePicture role');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -26,6 +26,13 @@ const getUserProfile = async (req, res, next) => {
       profilePicture: user.profilePicture,
       coverPhoto: user.coverPhoto,
       bio: user.bio,
+      role: user.role || 'student',
+      institution: user.institution || 'ODFEL Open University',
+      faculty: user.faculty || '',
+      department: user.department || '',
+      courseOfStudy: user.courseOfStudy || '',
+      academicLevel: user.academicLevel || '100 Level',
+      matricNumber: user.matricNumber || '',
       followers: user.followers,
       following: user.following,
       followersCount: user.followers.length,
@@ -45,7 +52,7 @@ const getUserProfile = async (req, res, next) => {
 // @access  Private
 const updateProfile = async (req, res, next) => {
   try {
-    const { fullname, bio, username } = req.body;
+    const { fullname, bio, username, role, institution, faculty, department, courseOfStudy, academicLevel, matricNumber } = req.body;
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -54,6 +61,13 @@ const updateProfile = async (req, res, next) => {
 
     if (fullname) user.fullname = fullname;
     if (bio !== undefined) user.bio = bio;
+    if (role) user.role = role;
+    if (institution !== undefined) user.institution = institution;
+    if (faculty !== undefined) user.faculty = faculty;
+    if (department !== undefined) user.department = department;
+    if (courseOfStudy !== undefined) user.courseOfStudy = courseOfStudy;
+    if (academicLevel !== undefined) user.academicLevel = academicLevel;
+    if (matricNumber !== undefined) user.matricNumber = matricNumber;
 
     if (username && username !== user.username) {
       const exists = await User.findOne({ username });
@@ -80,6 +94,13 @@ const updateProfile = async (req, res, next) => {
       profilePicture: user.profilePicture,
       coverPhoto: user.coverPhoto,
       bio: user.bio,
+      role: user.role,
+      institution: user.institution,
+      faculty: user.faculty,
+      department: user.department,
+      courseOfStudy: user.courseOfStudy,
+      academicLevel: user.academicLevel,
+      matricNumber: user.matricNumber,
       followers: user.followers,
       following: user.following,
       isAdmin: user.isAdmin,
@@ -152,9 +173,15 @@ const searchUsers = async (req, res, next) => {
 
     const regex = new RegExp(q, 'i');
     const users = await User.find({
-      $or: [{ fullname: regex }, { username: regex }, { email: regex }],
+      $or: [
+        { fullname: regex },
+        { username: regex },
+        { email: regex },
+        { courseOfStudy: regex },
+        { department: regex },
+      ],
     })
-      .select('fullname username profilePicture bio followers following')
+      .select('fullname username profilePicture bio role courseOfStudy department followers following')
       .limit(20);
 
     res.json(users);
@@ -169,7 +196,7 @@ const searchUsers = async (req, res, next) => {
 const getSuggestions = async (req, res, next) => {
   try {
     const users = await User.find({ _id: { $ne: req.user._id } })
-      .select('fullname username profilePicture bio followers')
+      .select('fullname username profilePicture bio role courseOfStudy department followers')
       .limit(10);
 
     res.json(users);

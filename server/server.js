@@ -8,6 +8,8 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 dotenv.config();
 
 // ============================================================
@@ -87,6 +89,9 @@ app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/groups', require('./routes/groupRoutes'));
+app.use('/api/resources', require('./routes/resourceRoutes'));
+app.use('/api/schedule', require('./routes/scheduleRoutes'));
 
 // SPA fallback: serve index.html for any non-API route so React Router
 // handles client-side navigation (e.g. /login, /messages, /profile/username).

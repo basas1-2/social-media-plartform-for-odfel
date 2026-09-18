@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
  * `queryTxt ESERVFAIL`. Uses the resolved shard hostnames.
  */
 const buildDirectURI = (srvUri) => {
+  if (!srvUri || typeof srvUri !== 'string') return null;
   const m = srvUri.match(/mongodb\+srv:\/\/([^@]+)@([^/]+)\/([^?]+)/);
   if (!m) return null;
   const [, creds, , db] = m;

@@ -6,7 +6,7 @@ const generateToken = require('../utils/generateToken');
 // @access  Public
 const registerUser = async (req, res, next) => {
   try {
-    const { fullname, username, email, password } = req.body;
+    const { fullname, username, email, password, role, institution, faculty, department, courseOfStudy, academicLevel, matricNumber } = req.body;
 
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
@@ -18,6 +18,13 @@ const registerUser = async (req, res, next) => {
       username,
       email,
       password,
+      role: role || 'student',
+      institution: institution || 'ODFEL Open University',
+      faculty: faculty || '',
+      department: department || '',
+      courseOfStudy: courseOfStudy || '',
+      academicLevel: academicLevel || '100 Level',
+      matricNumber: matricNumber || '',
     });
 
     if (user) {
@@ -29,6 +36,13 @@ const registerUser = async (req, res, next) => {
         profilePicture: user.profilePicture,
         coverPhoto: user.coverPhoto,
         bio: user.bio,
+        role: user.role,
+        institution: user.institution,
+        faculty: user.faculty,
+        department: user.department,
+        courseOfStudy: user.courseOfStudy,
+        academicLevel: user.academicLevel,
+        matricNumber: user.matricNumber,
         followers: user.followers,
         following: user.following,
         isAdmin: user.isAdmin,
@@ -74,6 +88,13 @@ const loginUser = async (req, res, next) => {
       profilePicture: user.profilePicture,
       coverPhoto: user.coverPhoto,
       bio: user.bio,
+      role: user.role || 'student',
+      institution: user.institution || 'ODFEL Open University',
+      faculty: user.faculty || '',
+      department: user.department || '',
+      courseOfStudy: user.courseOfStudy || '',
+      academicLevel: user.academicLevel || '100 Level',
+      matricNumber: user.matricNumber || '',
       followers: user.followers,
       following: user.following,
       isAdmin: user.isAdmin,

@@ -172,6 +172,18 @@ const setupSocket = (io) => {
       });
     });
 
+    // Relay group changes so open group views stay current for everyone.
+    socket.on('group-updated', (data) => {
+      if (data?.groupId) {
+        socket.broadcast.emit('group-updated', {
+          groupId: data.groupId,
+          action: data.action,
+          memberCount: data.memberCount,
+          userId,
+        });
+      }
+    });
+
     // Disconnect
     socket.on('disconnect', () => {
       removeUser(userId, socket.id);

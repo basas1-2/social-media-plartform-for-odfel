@@ -23,6 +23,16 @@ const CommentSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    upvotes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    isBestAnswer: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

@@ -81,6 +81,12 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  const emitGroupUpdate = (data) => {
+    if (socketRef.current) {
+      socketRef.current.emit('group-updated', data);
+    }
+  };
+
   return (
     <SocketContext.Provider
       value={{
@@ -92,6 +98,7 @@ export const SocketProvider = ({ children }) => {
         emitTyping,
         emitMessageSeen,
         emitNotify,
+        emitGroupUpdate,
       }}
     >
       {children}

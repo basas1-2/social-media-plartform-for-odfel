@@ -30,15 +30,14 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const isImage = file.mimetype.startsWith('image/');
   const isVideo = file.mimetype.startsWith('video/');
-  const isDoc =
-    file.mimetype === 'application/pdf' ||
-    file.mimetype === 'application/msword' ||
-    file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedDocExts = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.txt', '.rtf', '.zip', '.rar'];
+  const isDoc = allowedDocExts.includes(ext);
 
   if (isImage || isVideo || isDoc) {
     cb(null, true);
   } else {
-    cb(new Error('File type not supported'), false);
+    cb(new Error('File type not supported. Allowed formats: images, videos, PDF, Word, PowerPoint, TXT, RTF, ZIP, RAR'), false);
   }
 };
 

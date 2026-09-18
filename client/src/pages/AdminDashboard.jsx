@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  FaUsers, FaFileAlt, FaComment, FaFlag, FaEnvelope, FaCommentDots,
+  FaUsers, FaFileAlt, FaComment, FaFlag,
   FaTrash, FaBan, FaCheckCircle, FaUserCheck,
 } from 'react-icons/fa';
 import {
@@ -130,13 +130,15 @@ const AdminDashboard = () => {
       {/* Dashboard tab */}
       {tab === 'dashboard' && stats && (
         <div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <StatCard icon={<FaUsers />} label="Total Users" value={stats.totalUsers} />
-            <StatCard icon={<FaFileAlt />} label="Total Posts" value={stats.totalPosts} />
-            <StatCard icon={<FaComment />} label="Comments" value={stats.totalComments} />
+            <StatCard icon={<FaUsers />} label="Students" value={stats.totalStudents || 0} />
+            <StatCard icon={<FaUsers />} label="Lecturers & Tutors" value={stats.totalLecturers || 0} />
+            <StatCard icon={<FaFileAlt />} label="Academic Posts" value={stats.totalPosts} />
+            <StatCard icon={<FaUsers />} label="Study Groups" value={stats.totalGroups || 0} />
+            <StatCard icon={<FaFileAlt />} label="Resource Library Files" value={stats.totalResources || 0} />
+            <StatCard icon={<FaComment />} label="Comments & Answers" value={stats.totalComments} />
             <StatCard icon={<FaFlag />} label="Pending Reports" value={stats.totalReports} />
-            <StatCard icon={<FaEnvelope />} label="Messages" value={stats.totalMessages} />
-<StatCard icon={<FaCommentDots />} label="Conversations" value={stats.totalConversations} />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
